@@ -6,7 +6,7 @@ import { semanticColors } from "@vendetta/ui";
 import { showConfirmationAlert } from "@vendetta/ui/alerts";
 import { url } from "@vendetta/metro/common";
 
-const { FormSection, FormRow, FormSwitchRow, FormText, FormInput } = findByProps("FormSection");
+const { FormSection, FormText, FormInput } = findByProps("FormSection");
 
 const WarningContent = () => {
     return React.createElement(
@@ -79,17 +79,60 @@ export const Settings: React.FC<SettingsProps> = () => {
         url.openURL("https://github.com/ApexTeamPL/Apex-Plugins/tree/master/docs/nsfwbypass");
     };
 
-    const rowWrap = (child: React.ReactElement) =>
+    // Manual toggle row — bypasses FormSwitchRow's layout entirely
+    const ToggleRow = (label: string, subLabel: string, value: boolean, onChange: (v: boolean) => void) =>
         React.createElement(
             RN.View,
             {
                 style: {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    paddingVertical: 12,
+                    paddingHorizontal: 16,
                     width: "100%",
-                    alignSelf: "stretch",
                     boxSizing: "border-box",
                 },
             },
-            child
+            // Label column — allowed to shrink
+            React.createElement(
+                RN.View,
+                { style: { flex: 1, minWidth: 0, paddingRight: 12 } },
+                React.createElement(
+                    RN.Text,
+                    {
+                        style: {
+                            color: "#FFFFFF",
+                            fontSize: 15,
+                            fontWeight: "600",
+                            flexShrink: 1,
+                        },
+                        numberOfLines: 0,
+                    },
+                    label
+                ),
+                React.createElement(
+                    RN.Text,
+                    {
+                        style: {
+                            color: "#B9BBBE",
+                            fontSize: 12,
+                            marginTop: 2,
+                            flexShrink: 1,
+                        },
+                    },
+                    subLabel
+                )
+            ),
+            // Switch column — fixed size, never pushed off
+            React.createElement(
+                RN.View,
+                { style: { flexShrink: 0, flexGrow: 0 } },
+                React.createElement(RN.Switch, {
+                    value: value,
+                    onValueChange: onChange,
+                })
+            )
         );
 
     return React.createElement(
@@ -120,66 +163,37 @@ export const Settings: React.FC<SettingsProps> = () => {
                 },
                 "Configure accessibility features. Restart app to apply changes."
             ),
-            rowWrap(
-                React.createElement(FormSwitchRow, {
-                    label: "🌟 Enhanced Visual Accessibility",
-                    subLabel: "⚠️ Advanced visual enhancement features - Use with caution",
-                    leading: React.createElement(FormRow.Icon, {
-                        source: findByProps("getAssetByName")?.getAssetByName("ic_accessibility")?.id ||
-                                findByProps("getAssetByName")?.getAssetByName("ic_person")?.id
-                    }),
-                    value: storage.ageBypass,
-                    onValueChange: handleVisualA11yToggle,
-                    style: { flexShrink: 1, minWidth: 0 },
-                })
+            ToggleRow(
+                "🌟 Enhanced Visual Accessibility",
+                "⚠️ Advanced visual enhancement features - Use with caution",
+                storage.ageBypass,
+                handleVisualA11yToggle
             ),
-            rowWrap(
-                React.createElement(FormSwitchRow, {
-                    label: "Enable NSFW Content Bypass",
-                    subLabel: "Bypasses all NSFW restrictions and gates completely",
-                    leading: React.createElement(FormRow.Icon, {
-                        source: findByProps("getAssetByName")?.getAssetByName("ic_warning")?.id
-                    }),
-                    value: storage.nsfwBypass,
-                    onValueChange: (value: boolean) => {
-                        storage.nsfwBypass = value;
-                    },
-                    style: { flexShrink: 1, minWidth: 0 },
-                })
+            ToggleRow(
+                "Enable NSFW Content Bypass",
+                "Bypasses all NSFW restrictions and gates completely",
+                storage.nsfwBypass,
+                (v) => { storage.nsfwBypass = v; }
             ),
-            rowWrap(
-                React.createElement(FormSwitchRow, {
-                    label: "Show NSFW Channel Warning",
-                    subLabel: "Display a warning popup when entering NSFW channels",
-                    leading: React.createElement(FormRow.Icon, {
-                        source: findByProps("getAssetByName")?.getAssetByName("ic_alert")?.id
-                    }),
-                    value: storage.showWarningPopup,
-                    onValueChange: (value: boolean) => {
-                        storage.showWarningPopup = value;
-                    },
-                    style: { flexShrink: 1, minWidth: 0 },
-                })
+            ToggleRow(
+                "Show NSFW Channel Warning",
+                "Display a warning popup when entering NSFW channels",
+                storage.showWarningPopup,
+                (v) => { storage.showWarningPopup = v; }
             ),
-            rowWrap(
-                React.createElement(FormSwitchRow, {
-                    label: "🔒 Lock NSFW Channels",
-                    subLabel: storage.nsfwPassword
-                        ? "Password protected NSFW channel access"
-                        : "Set a password to enable NSFW channel locking",
-                    leading: React.createElement(FormRow.Icon, {
-                        source: findByProps("getAssetByName")?.getAssetByName("ic_lock")?.id
-                    }),
-                    value: storage.lockNSFWChannels,
-                    onValueChange: (value: boolean) => {
-                        if (value && !storage.nsfwPassword) {
-                            setShowPasswordInput(true);
-                        } else {
-                            storage.lockNSFWChannels = value;
-                        }
-                    },
-                    style: { flexShrink: 1, minWidth: 0 },
-                })
+            ToggleRow(
+                "🔒 Lock NSFW Channels",
+                storage.nsfwPassword
+                    ? "Password protected NSFW channel access"
+                    : "Set a password to enable NSFW channel locking",
+                storage.lockNSFWChannels,
+                (v) => {
+                    if (v && !storage.nsfwPassword) {
+                        setShowPasswordInput(true);
+                    } else {
+                        storage.lockNSFWChannels = v;
+                    }
+                }
             ),
 
             React.createElement(
