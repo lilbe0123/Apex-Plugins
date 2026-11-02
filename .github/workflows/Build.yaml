@@ -20,7 +20,7 @@ jobs:
       - name: Compile TypeScript
         working-directory: plugins/nsfwbypass
         run: |
-          npx -y typescript@5.4 tsc \
+          npx -y -p typescript@5.4 tsc \
             --outDir . \
             --rootDir . \
             --noEmitOnError false
